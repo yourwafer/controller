@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 	"xa.com/manager/agent/filter"
+	"xa.com/manager/agent/life"
 )
 
 var runningJava = sync.Map{}
@@ -31,65 +32,67 @@ type javaParameters struct {
 }
 
 func init() {
-	filter.RegisterHandler("/java", func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			logrus.Warn("必须使用Post Form")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-		form := r.PostForm
-		params, msg := parseJavaParam(form)
-		if len(msg) > 0 {
-			messageLog(w, "请求参数异常"+msg, nil)
-			return
-		}
-		sepString := string([]byte{os.PathSeparator})
-		workDir := strings.Join([]string{params.BaseDir, params.Project, params.Branch, params.Name}, sepString)
-		if params.Command == "start" {
-			preProcess, _ := runningJava.Load(workDir)
-			if preProcess != nil {
-				messageLog(w, "已经有进程正在运行，请先终止"+strconv.Itoa(preProcess.(os.Process).Pid), nil)
+	life.AddAgentInitial(func() {
+		filter.RegisterHandler("/java", func(w http.ResponseWriter, r *http.Request) {
+			err := r.ParseForm()
+			if err != nil {
+				logrus.Warn("必须使用Post Form")
+				w.WriteHeader(http.StatusMethodNotAllowed)
 				return
 			}
-		}
-		err = os.Chdir(workDir)
-		if err != nil {
-			messageLog(w, "切换当前工作目录失败", err)
-			return
-		}
-		messageLog(w, "切换java执行目录"+workDir, nil)
-		files, err := ioutil.ReadDir(workDir + sepString + "lib" + sepString)
-		if err != nil {
-			messageLog(w, "读取文件夹失败", err)
-			return
-		}
-		classPath := ".;resources;game-server.jar;"
-		for _, file := range files {
-			classPath = classPath + "lib" + sepString + file.Name() + ";"
-		}
-		messageLog(w, "参数:"+classPath+" "+params.JavaClass, nil)
-		switch params.Command {
-		case "start", "reload":
-			executeCommand(w, classPath, params, workDir)
-		case "stop":
-			preProcess, _ := runningJava.Load(workDir)
-			if preProcess != nil {
-				messageLog(w, "已经有进程正在运行:"+strconv.Itoa(preProcess.(*os.Process).Pid), nil)
-				err := preProcess.(*os.Process).Signal(syscall.SIGTERM)
-				if err == nil {
-					if waitAndForceKill(w, workDir, preProcess) {
-						return
-					}
-				} else {
-					messageLog(w, "使用Signal失败，调用命令行关闭", err)
+			form := r.PostForm
+			params, msg := parseJavaParam(form)
+			if len(msg) > 0 {
+				messageLog(w, "请求参数异常"+msg, nil)
+				return
+			}
+			sepString := string([]byte{os.PathSeparator})
+			workDir := strings.Join([]string{params.BaseDir, params.Project, params.Branch, params.Name}, sepString)
+			if params.Command == "start" {
+				preProcess, _ := runningJava.Load(workDir)
+				if preProcess != nil {
+					messageLog(w, "已经有进程正在运行，请先终止"+strconv.Itoa(preProcess.(os.Process).Pid), nil)
+					return
 				}
 			}
-			executeCommand(w, classPath, params, workDir)
-			if preProcess != nil {
-				waitAndForceKill(w, workDir, preProcess)
+			err = os.Chdir(workDir)
+			if err != nil {
+				messageLog(w, "切换当前工作目录失败", err)
+				return
 			}
-		}
+			messageLog(w, "切换java执行目录"+workDir, nil)
+			files, err := ioutil.ReadDir(workDir + sepString + "lib" + sepString)
+			if err != nil {
+				messageLog(w, "读取文件夹失败", err)
+				return
+			}
+			classPath := ".;resources;game-server.jar;"
+			for _, file := range files {
+				classPath = classPath + "lib" + sepString + file.Name() + ";"
+			}
+			messageLog(w, "参数:"+classPath+" "+params.JavaClass, nil)
+			switch params.Command {
+			case "start", "reload":
+				executeCommand(w, classPath, params, workDir)
+			case "stop":
+				preProcess, _ := runningJava.Load(workDir)
+				if preProcess != nil {
+					messageLog(w, "已经有进程正在运行:"+strconv.Itoa(preProcess.(*os.Process).Pid), nil)
+					err := preProcess.(*os.Process).Signal(syscall.SIGTERM)
+					if err == nil {
+						if waitAndForceKill(w, workDir, preProcess) {
+							return
+						}
+					} else {
+						messageLog(w, "使用Signal失败，调用命令行关闭", err)
+					}
+				}
+				executeCommand(w, classPath, params, workDir)
+				if preProcess != nil {
+					waitAndForceKill(w, workDir, preProcess)
+				}
+			}
+		})
 	})
 }
 

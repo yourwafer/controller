@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"xa.com/manager/agent/life"
 	"xa.com/manager/config"
 )
 
@@ -23,41 +24,43 @@ type initParameters struct {
 }
 
 func init() {
-	http.HandleFunc("/svn", func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			logrus.Warn("必须使用Post Form")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-		form := r.PostForm
-		params, msg := parseSvnParam(form)
-		if len(msg) > 0 {
-			_, _ = w.Write([]byte(msg))
-			logrus.Info("请求参数异常", msg)
-			return
-		}
-		if !strings.Contains(params.SvnPath, "svn://192.168.11.200/") && !strings.Contains(params.SvnPath, "https://svn.h5.xaigame.com/") {
-			logrus.Warn("非法svn路径", params.SvnPath)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		workDir := strings.Join([]string{params.BaseDir, params.Project, params.Branch}, string([]byte{os.PathSeparator}))
-		dstPath := workDir + string([]byte{os.PathSeparator}) + params.Name
-		switch params.Command {
-		case "checkout":
-			args := []string{"co", "--username", params.SvnUser,
-				"--password", params.SvnPass,
-				"--non-interactive", "--trust-server-cert",
-				params.SvnPath, dstPath}
-			execSvn(w, params, args)
-		case "update":
-			args := []string{"up",
-				"--accept", "mc", params.SvnPass,
-				"--non-interactive", "--trust-server-cert",
-				dstPath}
-			execSvn(w, params, args)
-		}
+	life.AddAgentInitial(func() {
+		http.HandleFunc("/svn", func(w http.ResponseWriter, r *http.Request) {
+			err := r.ParseForm()
+			if err != nil {
+				logrus.Warn("必须使用Post Form")
+				w.WriteHeader(http.StatusMethodNotAllowed)
+				return
+			}
+			form := r.PostForm
+			params, msg := parseSvnParam(form)
+			if len(msg) > 0 {
+				_, _ = w.Write([]byte(msg))
+				logrus.Info("请求参数异常", msg)
+				return
+			}
+			if !strings.Contains(params.SvnPath, "svn://192.168.11.200/") && !strings.Contains(params.SvnPath, "https://svn.h5.xaigame.com/") {
+				logrus.Warn("非法svn路径", params.SvnPath)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			workDir := strings.Join([]string{params.BaseDir, params.Project, params.Branch}, string([]byte{os.PathSeparator}))
+			dstPath := workDir + string([]byte{os.PathSeparator}) + params.Name
+			switch params.Command {
+			case "checkout":
+				args := []string{"co", "--username", params.SvnUser,
+					"--password", params.SvnPass,
+					"--non-interactive", "--trust-server-cert",
+					params.SvnPath, dstPath}
+				execSvn(w, params, args)
+			case "update":
+				args := []string{"up",
+					"--accept", "mc", params.SvnPass,
+					"--non-interactive", "--trust-server-cert",
+					dstPath}
+				execSvn(w, params, args)
+			}
+		})
 	})
 }
 

@@ -1,0 +1,67 @@
+{
+  "project": "shennu",
+  "baseDir": "F:\\tmp",
+  "svnUser": "weihongwei",
+  "svnPass": "sd0#*(DK$(DK(095&J",
+  "branches": {
+    "qa3": {
+      "agent": "192.168.11.102:11000",
+      "svn": {
+        "game": "svn://192.168.11.200/shennu/server/trunk",
+        "center": "svn://192.168.11.200/shennu/server/trunk",
+        "numerical": "svn://192.168.11.200/shennu/numerical/trunk"
+      },
+      "mysql": {
+        "username": "root",
+        "password": "root",
+        "address": "127.0.0.1:3306",
+        "databases": {
+          "qa3_game": "",
+          "qa3_center": ""
+        }
+      },
+      "configs": [
+        {
+          "fileName": "game/resources/server.properties",
+          "values": {
+            "-xa.socket.address": "0.0.0.0:11111",
+            "-server.resource.path": "file:///G:\\tmp\\shennu\\trunk\\numerical"
+          }
+        },
+        {
+          "fileName": "game/resources/jdbc.properties",
+          "values": {
+            "-jdbc.url": "jdbc:mysql://127.0.0.1/qa3_game?useUnicode=true&characterEncoding=utf-8",
+            "-jdbc.username": "root",
+            "-jdbc.password": "root"
+          }
+        },
+        {
+          "fileName": "game/resources/zookeeper.properties",
+          "values": {
+            "-zookeeper.serverPath": "/shennu_qa3"
+          }
+        }
+      ],
+      "java": [
+        {
+          "name": "game",
+          "commands": {
+            "start": {
+              "javaClass": "com.xa.shennu.game.Start",
+              "memory": "2G"
+            },
+            "stop": {
+              "javaClass": "com.xa.shennu.game.console.command.Stop",
+              "memory": "128M"
+            },
+            "reload": {
+              "javaClass": "com.xa.shennu.game.console.command.Reload",
+              "memory": "128M"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

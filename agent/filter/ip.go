@@ -5,10 +5,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"xa.com/manager/agent/life"
 )
 
 func init() {
-	RegisterFilter(ipFilter)
+	life.AddAgentInitial(func() {
+		RegisterFilter(ipFilter)
+	})
 }
 
 func ipFilter(writer http.ResponseWriter, request *http.Request, chain *Chain) {

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	_ "xa.com/manager/agent/command"
-	_ "xa.com/manager/agent/filter"
+	"xa.com/manager/agent/life"
 	"xa.com/manager/config"
 )
 
@@ -17,5 +17,6 @@ func Start() {
 			return
 		}
 	}()
+	life.CallInit()
 	logrus.Info("Starting Agent;bind port:", config.ApplicationConfig.Port)
 }

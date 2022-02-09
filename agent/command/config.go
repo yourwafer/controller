@@ -9,81 +9,83 @@ import (
 	"os"
 	"strings"
 	"xa.com/manager/agent/filter"
+	"xa.com/manager/agent/life"
 )
 
 type configParameters struct {
 	BaseDir string
 	Project string
 	Branch  string
-	Name    string
 	Config  string
 	Values  map[string]string
 }
 
 func init() {
-	filter.RegisterHandler("/config", func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			logrus.Warn("必须使用Post Form")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-		form := r.PostForm
-		params, msg := parseConfigParam(form)
-		if len(msg) != 0 {
-			messageLog(w, msg, nil)
-			return
-		}
-		sepString := string([]byte{os.PathSeparator})
-		filePath := strings.Join([]string{params.BaseDir, params.Project, params.Branch, params.Name, params.Config}, sepString)
-		fileBak := filePath + ".bak"
-		err = os.Rename(filePath, fileBak)
-		if err != nil {
-			messageLog(w, "重命名失败"+fileBak, err)
-			return
-		}
-		bakFile, err := os.Open(fileBak)
-		if err != nil {
-			messageLog(w, "打开备份配置失败", err)
-			return
-		}
-		defer func() {
-			_ = bakFile.Close()
-			_ = os.Remove(fileBak)
-		}()
-		scanner := bufio.NewScanner(bakFile)
-		newFile, err := os.Create(filePath)
-		if err != nil {
-			messageLog(w, "创建新文件失败", err)
-			return
-		}
-		defer func() {
-			_ = newFile.Close()
-		}()
-		values := params.Values
-		for scanner.Scan() {
-			text := scanner.Text()
-			if strings.HasPrefix(text, "#") || strings.HasPrefix(text, "//") {
-				_, _ = fmt.Fprintln(newFile, text)
-				continue
+	life.AddAgentInitial(func() {
+		filter.RegisterHandler("/config", func(w http.ResponseWriter, r *http.Request) {
+			err := r.ParseForm()
+			if err != nil {
+				logrus.Warn("必须使用Post Form")
+				w.WriteHeader(http.StatusMethodNotAllowed)
+				return
 			}
-			keyVal := strings.SplitN(text, "=", 2)
-			if len(keyVal) < 2 {
-				_, _ = fmt.Fprintln(newFile, text)
-				continue
+			form := r.PostForm
+			params, msg := parseConfigParam(form)
+			if len(msg) != 0 {
+				messageLog(w, msg, nil)
+				return
 			}
-			key := strings.TrimSpace(keyVal[0])
-			replaceVal, exit := values[key]
-			if !exit {
-				_, _ = fmt.Fprintln(newFile, text)
-				continue
+			sepString := string([]byte{os.PathSeparator})
+			filePath := strings.Join([]string{params.BaseDir, params.Project, params.Branch, params.Config}, sepString)
+			fileBak := filePath + ".bak"
+			err = os.Rename(filePath, fileBak)
+			if err != nil {
+				messageLog(w, "重命名失败"+fileBak, err)
+				return
 			}
-			value := strings.TrimSpace(keyVal[1])
-			_, _ = fmt.Fprintf(newFile, "%s=%s", key, replaceVal)
-			_, _ = fmt.Fprintln(newFile)
-			messageLog(w, filePath+";"+key+":"+value+"->"+replaceVal, nil)
-		}
-		messageLog(w, "替换文件成功"+filePath, nil)
+			bakFile, err := os.Open(fileBak)
+			if err != nil {
+				messageLog(w, "打开备份配置失败", err)
+				return
+			}
+			defer func() {
+				_ = bakFile.Close()
+				_ = os.Remove(fileBak)
+			}()
+			scanner := bufio.NewScanner(bakFile)
+			newFile, err := os.Create(filePath)
+			if err != nil {
+				messageLog(w, "创建新文件失败", err)
+				return
+			}
+			defer func() {
+				_ = newFile.Close()
+			}()
+			values := params.Values
+			for scanner.Scan() {
+				text := scanner.Text()
+				if strings.HasPrefix(text, "#") || strings.HasPrefix(text, "//") {
+					_, _ = fmt.Fprintln(newFile, text)
+					continue
+				}
+				keyVal := strings.SplitN(text, "=", 2)
+				if len(keyVal) < 2 {
+					_, _ = fmt.Fprintln(newFile, text)
+					continue
+				}
+				key := strings.TrimSpace(keyVal[0])
+				replaceVal, exit := values[key]
+				if !exit {
+					_, _ = fmt.Fprintln(newFile, text)
+					continue
+				}
+				value := strings.TrimSpace(keyVal[1])
+				_, _ = fmt.Fprintf(newFile, "%s=%s", key, replaceVal)
+				_, _ = fmt.Fprintln(newFile)
+				messageLog(w, filePath+";"+key+":"+value+"->"+replaceVal, nil)
+			}
+			messageLog(w, "替换文件成功"+filePath, nil)
+		})
 	})
 }
 
@@ -101,10 +103,6 @@ func parseConfigParam(form url.Values) (configParameters, string) {
 	if len(branch) == 0 {
 		msg.WriteString("branch分支不可为空\n")
 	}
-	name := form.Get("name")
-	if len(name) == 0 {
-		msg.WriteString("name参数不可为空\n")
-	}
 	config := form.Get("config")
 	if len(config) == 0 {
 		msg.WriteString("config文件名参数不可为空\n")
@@ -120,7 +118,6 @@ func parseConfigParam(form url.Values) (configParameters, string) {
 		BaseDir: baseDir,
 		Project: project,
 		Branch:  branch,
-		Name:    name,
 		Config:  config,
 		Values:  values,
 	}, msg.String()
