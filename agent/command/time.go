@@ -1,6 +1,7 @@
 package command
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -16,6 +17,8 @@ func init() {
 		filter.RegisterHandler("/time", func(w http.ResponseWriter, r *http.Request) {
 			query := r.URL.Query()
 			update := query.Get("update")
+			updateByte, _ := base64.URLEncoding.DecodeString(update)
+			update = string(updateByte)
 			layout := "2006-01-02 15:04:05"
 			if "" == update {
 				now := time.Now()
