@@ -37,8 +37,8 @@ type JavaItem struct {
 }
 
 type JavaConfiguration struct {
-	Name     string              `json:"name"`     // 使用签名配置Svn目录名称
-	Commands map[string]JavaItem `json:"commands"` // java命令
+	Name     string               `json:"name"`     // 使用签名配置Svn目录名称
+	Commands map[string]*JavaItem `json:"commands"` // java命令
 }
 
 type Branch struct {

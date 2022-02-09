@@ -57,6 +57,24 @@ func buildConfig(branch string, fileConfig config.FileConfig) (string, string) {
 	return "http://" + curBranch.Agent + "/config", params
 }
 
+func buildJava(branch string, serverName string, command string, args string, item *config.JavaItem) (string, string) {
+	project := config.ProjectConfig
+	curBranch := project.Branches[branch]
+	if curBranch == nil {
+		return "", ""
+	}
+	params := "baseDir=" + project.BaseDir + "&" +
+		"project=" + project.Project + "&" +
+		"branch=" + branch + "&" +
+		"name=" + serverName + "&" +
+		"command=" + command + "&" +
+		"javaClass=" + item.JavaClass + "&" +
+		"spaceMB=" + item.Memory + "&" +
+		"args=" + args
+
+	return "http://" + curBranch.Agent + "/java", params
+}
+
 func httpPost(url, param string, msgBuilder *strings.Builder) {
 	client := &http.Client{}
 	var data = strings.NewReader(param)

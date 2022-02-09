@@ -25,7 +25,7 @@
           "fileName": "game/resources/server.properties",
           "values": {
             "-xa.socket.address": "0.0.0.0:11111",
-            "-server.resource.path": "file:///G:\\tmp\\shennu\\qa3\\numerical"
+            "-server.resource.path": "file:///F:\\\\tmp\\\\shennu\\\\qa3\\\\numerical"
           }
         },
         {
@@ -46,7 +46,14 @@
           "fileName": "center/resources/center/server.properties",
           "values": {
             "-xa.socket.address": "0.0.0.0:11112",
-            "-server.resource.path": "file:///G:\\tmp\\shennu\\qa3\\numerical"
+            "-server.resource.path": "file:///F:\\\\tmp\\\\shennu\\\\qa3\\\\numerical"
+          }
+        },
+        {
+          "fileName": "center/resources/server.properties",
+          "values": {
+            "-xa.socket.address": "0.0.0.0:11112",
+            "-server.resource.path": "file:///F:\\\\tmp\\\\shennu\\\\qa3\\\\numerical"
           }
         },
         {
@@ -65,6 +72,23 @@
         }
       ],
       "java": [
+        {
+          "name": "center",
+          "commands": {
+            "start": {
+              "javaClass": "com.xa.shennu.center.Start",
+              "memory": "2G"
+            },
+            "stop": {
+              "javaClass": "com.xa.shennu.game.console.command.Stop",
+              "memory": "128M"
+            },
+            "reload": {
+              "javaClass": "com.xa.shennu.game.console.command.Reload",
+              "memory": "128M"
+            }
+          }
+        },
         {
           "name": "game",
           "commands": {
