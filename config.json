@@ -25,7 +25,7 @@
           "fileName": "game/resources/server.properties",
           "values": {
             "-xa.socket.address": "0.0.0.0:11111",
-            "-server.resource.path": "file:///G:\\tmp\\shennu\\trunk\\numerical"
+            "-server.resource.path": "file:///G:\\tmp\\shennu\\qa3\\numerical"
           }
         },
         {
@@ -38,6 +38,27 @@
         },
         {
           "fileName": "game/resources/zookeeper.properties",
+          "values": {
+            "-zookeeper.serverPath": "/shennu_qa3"
+          }
+        },
+        {
+          "fileName": "center/resources/center/server.properties",
+          "values": {
+            "-xa.socket.address": "0.0.0.0:11112",
+            "-server.resource.path": "file:///G:\\tmp\\shennu\\qa3\\numerical"
+          }
+        },
+        {
+          "fileName": "center/resources/center/jdbc.properties",
+          "values": {
+            "-jdbc.url": "jdbc:mysql://127.0.0.1/qa3_center?useUnicode=true&characterEncoding=utf-8",
+            "-jdbc.username": "root",
+            "-jdbc.password": "root"
+          }
+        },
+        {
+          "fileName": "center/resources/center/zookeeper.properties",
           "values": {
             "-zookeeper.serverPath": "/shennu_qa3"
           }

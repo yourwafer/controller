@@ -1,6 +1,7 @@
 package command
 
 import (
+	"encoding/base64"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -115,6 +116,8 @@ func parseSvnParam(form url.Values) (initParameters, string) {
 	if len(svnPass) == 0 {
 		msg.WriteString("svnPass密码不可为空")
 	}
+	decodeString, _ := base64.URLEncoding.DecodeString(svnPass)
+	svnPass = string(decodeString)
 	name := form.Get("name")
 	if len(name) == 0 {
 		msg.WriteString("name参数不可为空")

@@ -1,6 +1,7 @@
 package command
 
 import (
+	"encoding/base64"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,12 +15,13 @@ func buildSvn(branch string, name string, resource string, command string) (stri
 	if curBranch == nil {
 		return "", ""
 	}
+
 	params := "baseDir=" + project.BaseDir + "&" +
 		"project=" + project.Project + "&" +
 		"branch=" + branch + "&" +
 		"svnPath=" + resource + "&" +
 		"svnUser=" + project.SvnUser + "&" +
-		"svnPass=" + project.SvnPass + "&" +
+		"svnPass=" + base64.URLEncoding.EncodeToString([]byte(project.SvnPass)) + "&" +
 		"name=" + name + "&" +
 		"command=" + command
 
@@ -47,7 +49,7 @@ func buildConfig(branch string, fileConfig config.FileConfig) (string, string) {
 	params := "baseDir=" + project.BaseDir + "&" +
 		"project=" + project.Project + "&" +
 		"branch=" + branch + "&" +
-		"name=" + fileConfig.FileName + "&"
+		"config=" + fileConfig.FileName + "&"
 	for key, val := range fileConfig.Values {
 		params += key + "=" + val + "&"
 	}
@@ -55,7 +57,7 @@ func buildConfig(branch string, fileConfig config.FileConfig) (string, string) {
 	return "http://" + curBranch.Agent + "/config", params
 }
 
-func httpPost(url, param string, msgBuilder strings.Builder) {
+func httpPost(url, param string, msgBuilder *strings.Builder) {
 	client := &http.Client{}
 	var data = strings.NewReader(param)
 	req, err := http.NewRequest("POST", url, data)
