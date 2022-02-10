@@ -53,19 +53,19 @@ func init() {
 					"--password", params.SvnPass,
 					"--non-interactive", "--trust-server-cert",
 					params.SvnPath, dstPath}
-				execSvn(w, params, args)
+				execSvn(w, params, args, params.SvnPass)
 			case "update":
 				args := []string{"up",
-					"--accept", "mc", params.SvnPass,
+					"--accept", "mc",
 					"--non-interactive", "--trust-server-cert",
 					dstPath}
-				execSvn(w, params, args)
+				execSvn(w, params, args, "")
 			}
 		})
 	})
 }
 
-func execSvn(w http.ResponseWriter, params initParameters, args []string) {
+func execSvn(w http.ResponseWriter, params initParameters, args []string, replace string) {
 	workDir := strings.Join([]string{params.BaseDir, params.Project, params.Branch}, string([]byte{os.PathSeparator}))
 	err := os.MkdirAll(workDir, os.ModeDir)
 	if err != nil {
@@ -75,6 +75,13 @@ func execSvn(w http.ResponseWriter, params initParameters, args []string) {
 		return
 	}
 	cmd := exec.Command("svn", args...)
+	if len(replace) > 0 {
+		for idx := 0; idx < len(args); idx++ {
+			pre := args[idx]
+			pre = strings.ReplaceAll(pre, replace, "*******")
+			args[idx] = pre
+		}
+	}
 	writers := io.MultiWriter(w, config.LogrusWriter)
 	cmd.Stdout = writers
 	cmd.Stderr = writers

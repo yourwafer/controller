@@ -2,8 +2,8 @@
   "project": "shennu",
   "description": "神怒",
   "baseDir": "F:\\tmp",
-  "svnUser": "weihongwei",
-  "svnPass": "sd0#*(DK$(DK(095&J",
+  "svnUser": "deploy",
+  "svnPass": "okjbvfrtyhjmk",
   "branches": {
     "qa3": {
       "description": "繁体",
