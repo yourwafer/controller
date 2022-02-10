@@ -3,11 +3,12 @@
   "description": "神怒",
   "baseDir": "F:\\tmp",
   "svnUser": "deploy",
-  "svnPass": "okjbvfrtyhjmk",
+  "svnPass": "***",
   "branches": {
     "qa3": {
       "description": "繁体",
       "agent": "192.168.11.102:11000",
+      "serverPort": 11111,
       "svn": {
         "game": {
           "path": "svn://192.168.11.200/shennu/server/trunk",

@@ -22,14 +22,15 @@
     <div id="servers" class="row"></div>
 </div>
 
-<div id="messageModel" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+<div id="messageModel" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                    aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="exampleModalLabel">请求结果</h4>
-        </div>
-        <div class="modal-content" id="messageContent">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">请求结果</h4>
+            </div>
+            <div class="modal-body" id="messageContent"></div>
         </div>
     </div>
 </div>
@@ -41,6 +42,9 @@
 
     p {
         margin-left: 20px
+    }
+    .row {
+        margin-bottom: 5px;
     }
 </style>
 
@@ -113,8 +117,13 @@
                     '</div>' +
 
                     '<div class="row">' +
-                    '<button class="btn btn-info" onclick="setTime(\'' + k + '\')"><span class="glyphicon glyphicon-time"></span>设置时间</button>' +
+                    '<button class="btn btn-info" onclick="setSystemTime(\'' + k + '\')"><span class="glyphicon glyphicon-time"></span>设置系统时间</button>' +
                     '<label for="time"><input type="text" id="time_' + k + '" value="2022-02-09 18:50:00"/></label>' +
+                    '</div>' +
+
+                    '<div class="row">' +
+                    '<button class="btn btn-info" onclick="setServerTime(\'' + k + '\')"><span class="glyphicon glyphicon-calendar"></span>设置开服时间</button>' +
+                    '<label for="time"><input type="text" id="serverTime_' + k + '" value="2022-02-09 18:50:00"/></label>' +
                     '</div>' +
 
                     '</div>';
@@ -123,12 +132,25 @@
         }, true)
     }
 
-    function setTime(branch) {
+    function setSystemTime(branch) {
         let timeId = "time_" + branch
         let timeInput = document.getElementById(timeId).value
         ajaxGet("time", {
             branch: branch,
             time: timeInput
+        }, function (response) {
+        })
+    }
+
+    function setServerTime(branch) {
+        let timeId = "serverTime_" + branch
+        let timeInput = document.getElementById(timeId).value
+        ajaxGet("socket", {
+            _branch: branch,
+            _module: 4,
+            _command: 15,
+            name: "open-time",
+            value: timeInput
         }, function (response) {
         })
     }

@@ -50,6 +50,7 @@ type JavaConfiguration struct {
 type Branch struct {
 	Description  string                   `json:"description"` // 描述内容
 	Agent        string                   `json:"agent"`       // 部署节点
+	ServerPort   int                      `json:"serverPort"`  // 游戏服使用端口，用于发送指令
 	SvnResources map[string]*ResourceItem `json:"svn"`         // 下载svn资源,<目录名,svn路径>
 	Mysql        MysqlConfiguration       `json:"mysql"`       // 创建并初始化相关数据库
 	Configs      []FileConfig             `json:"configs"`     // 配置相关文件
