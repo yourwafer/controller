@@ -70,7 +70,7 @@ func init() {
 			for _, file := range files {
 				classPath = classPath + "lib" + sepString + file.Name() + ";"
 			}
-			messageLog(w, "参数:"+classPath+" "+params.JavaClass, nil)
+			messageLog(w, params.JavaClass, nil)
 			switch params.Command {
 			case "start", "reload":
 				executeCommand(w, classPath, params, workDir)
@@ -137,6 +137,7 @@ func executeCommand(w http.ResponseWriter, classPath string, params javaParamete
 	}
 	done := make(chan error, 2)
 	//utf8Reader := transform.NewReader(pipReader, simplifiedchinese.GBK.NewDecoder())
+	msgBuilder := strings.Builder{}
 	go func() {
 		runningJava.Store(workDir, cmd.Process)
 		logrus.Info("正在执行的java进程", workDir, cmd.Process.Pid)
@@ -144,7 +145,8 @@ func executeCommand(w http.ResponseWriter, classPath string, params javaParamete
 		runningJava.Delete(workDir)
 		logrus.Info("java进程停止", workDir, cmd.Process.Pid)
 		if err != nil {
-			messageLog(w, "java停止", err)
+			msgBuilder.WriteString("java停止")
+			msgBuilder.WriteString(err.Error())
 			fmt.Println("wait done 结束")
 			done <- err
 			return
@@ -160,7 +162,8 @@ func executeCommand(w http.ResponseWriter, classPath string, params javaParamete
 			if printConsole {
 				fmt.Println(text)
 			}
-			_, _ = w.Write(scanner.Bytes())
+			msgBuilder.WriteString(scanner.Text())
+
 			if strings.Contains(text, "com.xa.shennu.game.Start.main(Start.java:60)") || strings.Contains(text, "com.xa.shennu.center.Start.main(Start.java:67)") {
 				printConsole = false
 				done <- nil
@@ -170,10 +173,12 @@ func executeCommand(w http.ResponseWriter, classPath string, params javaParamete
 	}()
 	ret := <-done
 	if ret != nil {
-		messageLog(w, "java执行失败", ret)
+		msgBuilder.WriteString("java执行失败 " + ret.Error())
+		_, _ = w.Write([]byte(msgBuilder.String()))
 		return
 	}
-	messageLog(w, "java执行成功", nil)
+	msgBuilder.WriteString("java执行成功")
+	_, _ = w.Write([]byte(msgBuilder.String()))
 	return
 }
 

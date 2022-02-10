@@ -24,7 +24,7 @@ func svnFunc(writer http.ResponseWriter, request *http.Request) {
 	name := query.Get("name")
 	msgBuilder := strings.Builder{}
 	svnResource := branch.SvnResources[name]
-	url, param := buildSvn(branchName, name, svnResource, "update")
+	url, param := buildSvn(branchName, name, svnResource.Path, "update")
 	httpPost(url, param, &msgBuilder)
 	_, _ = writer.Write([]byte(msgBuilder.String()))
 }

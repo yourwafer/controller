@@ -2,6 +2,7 @@ package command
 
 import (
 	"encoding/base64"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -107,13 +108,19 @@ func httpPost(url, param string, msgBuilder *strings.Builder) {
 	var data = strings.NewReader(param)
 	req, err := http.NewRequest("POST", url, data)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Error(err)
+		msgBuilder.WriteString(err.Error())
+		msgBuilder.WriteString("\n")
+		return
 	}
 	req.Header.Set("User-Agent", "xa manager")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Error(err)
+		msgBuilder.WriteString(err.Error())
+		msgBuilder.WriteString("\n")
+		return
 	}
 	msg, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

@@ -1,15 +1,31 @@
 {
   "project": "shennu",
+  "description": "神怒",
   "baseDir": "F:\\tmp",
   "svnUser": "weihongwei",
   "svnPass": "sd0#*(DK$(DK(095&J",
   "branches": {
     "qa3": {
+      "description": "繁体",
       "agent": "192.168.11.102:11000",
       "svn": {
-        "game": "svn://192.168.11.200/shennu/server/trunk",
-        "center": "svn://192.168.11.200/shennu/server/trunk",
-        "numerical": "svn://192.168.11.200/shennu/numerical/trunk"
+        "game": {
+          "path": "svn://192.168.11.200/shennu/server/trunk",
+          "description": "游戏服"
+        },
+        "center": {
+          "path": "svn://192.168.11.200/shennu/server/trunk",
+          "description": "中央服"
+        },
+        "numerical": {
+          "path": "svn://192.168.11.200/shennu/numerical/trunk",
+          "description": "游戏服数值表"
+        },
+        "client": {
+          "path": "svn://192.168.11.200/shennu/numerical/trunk",
+          "description": "客户端",
+          "show": true
+        }
       },
       "mysql": {
         "username": "root",
@@ -107,6 +123,22 @@
           }
         }
       ]
+    },
+    "qa4": {
+      "description": "繁体2",
+      "agent": "192.168.11.102:11000"
+    },
+    "qa5": {
+      "description": "繁体3",
+      "agent": "192.168.11.102:11000"
+    },
+    "qa6": {
+      "description": "繁体4",
+      "agent": "192.168.11.102:11000"
+    },
+    "qa7": {
+      "description": "繁体5",
+      "agent": "192.168.11.102:11000"
     }
   }
 }

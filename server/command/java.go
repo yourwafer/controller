@@ -9,7 +9,7 @@ import (
 
 func init() {
 	life.AddServerInitial(func() {
-		http.HandleFunc("/start", start)
+		http.HandleFunc("/java", start)
 	})
 }
 

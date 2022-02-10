@@ -3,15 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>服务器控制</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+          integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="https://fastly.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"
+            integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
+            integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+            crossorigin="anonymous"></script>
 </head>
 <body>
-<div>
-    <h3><span id="projectName"></span>服务器列表</h3>
-    <div id="servers"></div>
+
+<div class="container">
+    <div class="page-heade">
+        <h3><span id="projectName"></span><small>服务器列表</small></h3>
+    </div>
+    <div id="servers" class="row"></div>
 </div>
-<div>
-    <button style="height:200px; width:400px;" onclick=setTime()>设置当天时间</button>
-    <label for="time"><input type="text" id="time"/></label>
+
+<div id="messageModel" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                    aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="exampleModalLabel">请求结果</h4>
+        </div>
+        <div class="modal-content" id="messageContent">
+        </div>
+    </div>
 </div>
 </body>
 <style>
@@ -22,41 +42,39 @@
     p {
         margin-left: 20px
     }
-
-    .serverItem {
-        border-radius: 6px;
-        min-height: 20px;
-        min-width: 220px;
-        padding: 5px;
-        margin-bottom: 20px;
-        background-color: #f5f5f5;
-        border: 1px solid #e3e3e3;
-        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
-        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
-        float: left;
-    }
 </style>
 
 <script type="text/javascript">
-    function ajaxGet(url, params, callback) {
+    function ajaxGet(url, params, callback, appendResponse) {
+        let element = $("#messageContent");
+        if (appendResponse !== true) {
+            $("#messageModel").modal();
+            element.html("准备请求..");
+        }
         let request = new XMLHttpRequest();
         request.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
                 if (callback != null) {
+                    let response = request.responseText;
                     callback(request.responseText)
+                    response = response.replace(/(\r\n)|(\n)/g, '<br>');
+                    element.html(element.html() + "<br />" + response);
                 }
             }
         };
         if (params != null) {
             url += "?";
-            for (let key = 0; key < params.length; key++) {
+            for (let key in params) {
+                if (!params.hasOwnProperty(key)) {
+                    continue;
+                }
                 if (!url.endsWith("?") && !url.endsWith("&")) {
                     url += "&";
                 }
                 url += key + "=" + params[key];
             }
         }
-        request.open("GET", window.location + "/" + url, false);
+        request.open("GET", window.location + "/" + url, true);
         request.send();
     }
 
@@ -65,17 +83,114 @@
             let list = JSON.parse(response)
             let branches = list.branches;
             let serverItem = "";
-            document.getElementById("projectName").innerHTML = list.project;
-            for (let k of branches) {
-                serverItem += '<label class="serverItem"><input type="checkbox" value="' + k + '" />' + "<b>" + k + "</b>" + "</label>"
+            document.getElementById("projectName").innerHTML = list.description;
+            for (let k in branches) {
+                if (!branches.hasOwnProperty(k)) {
+                    continue;
+                }
+                serverItem += '<div class="col-md-4 well">' +
+                    '<h3>' + branches[k] + '(' + k + ')' + '</h3>' +
+
+                    '<div class="row">' +
+                    '<button class="btn btn-danger" onclick="initServer(\'' + k + '\')"><span class="glyphicon glyphicon-refresh"></span>服务器初始化部署(清库)</button>' +
+                    '</div>' +
+
+                    '<div class="row">' +
+                    '<button class="btn btn-warning" onclick="startServer(\'' + k + '\')"><span class="glyphicon glyphicon-play"></span>游戏服启动</button>' +
+                    '</div>' +
+
+                    '<div class="row">' +
+                    '<button class="btn btn-danger" onclick="stopServer(\'' + k + '\')"><span class="glyphicon glyphicon-off"></span>游戏服关闭</button>' +
+                    '</div>' +
+
+                    '<div class="row">' +
+                    '<button class="btn btn-info" onclick="reloadResource(\'' + k + '\')"><span class="glyphicon glyphicon-edit"></span>热更游戏服数值表</button>' +
+                    '<label for="time"><input type="text" id="resource_' + k + '" value="ChannelConfig"/></label>' +
+                    '</div>' +
+
+                    '<div class="row">' +
+                    '<button class="btn btn-info" onclick="updateClient(\'' + k + '\')"><span class="glyphicon glyphicon-phone"></span>更新客户端资源</button>' +
+                    '</div>' +
+
+                    '<div class="row">' +
+                    '<button class="btn btn-info" onclick="setTime(\'' + k + '\')"><span class="glyphicon glyphicon-time"></span>设置时间</button>' +
+                    '<label for="time"><input type="text" id="time_' + k + '" value="2022-02-09 18:50:00"/></label>' +
+                    '</div>' +
+
+                    '</div>';
             }
-            console.log(serverItem)
             document.getElementById("servers").innerHTML = serverItem
+        }, true)
+    }
+
+    function setTime(branch) {
+        let timeId = "time_" + branch
+        let timeInput = document.getElementById(timeId).value
+        ajaxGet("time", {
+            branch: branch,
+            time: timeInput
+        }, function (response) {
         })
     }
 
-    function setTime() {
+    function initServer(branch) {
+        let ok = confirm("是否确认清库")
+        if (!ok) {
+            return
+        }
+        ajaxGet("init", {
+            branch: branch,
+        }, function (response) {
+        });
+    }
 
+    function startServer(branch) {
+        let ok = confirm("是否确认启动服务器(如果已经启动，先点击关闭服务器)")
+        if (!ok) {
+            return
+        }
+        ajaxGet("java", {
+            branch: branch,
+            command: "start"
+        }, function (response) {
+        })
+    }
+
+    function stopServer(branch) {
+        let ok = confirm("是否确认停服")
+        if (!ok) {
+            return
+        }
+        ajaxGet("java", {
+            branch: branch,
+            command: "stop"
+        }, function (response) {
+        })
+    }
+
+    function reloadResource(branch) {
+        ajaxGet("svn", {
+            branch: branch,
+            name: "numerical",
+        }, function (response) {
+            let resourceId = "resource_" + branch
+            let resources = document.getElementById(resourceId).value
+
+            ajaxGet("java", {
+                branch: branch,
+                command: "reload",
+                args: resources
+            }, function (response) {
+            }, true)
+        })
+    }
+
+    function updateClient(branch) {
+        ajaxGet("svn", {
+            branch: branch,
+            name: "client",
+        }, function (response) {
+        })
     }
 
     refreshServers();
